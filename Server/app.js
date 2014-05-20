@@ -1,14 +1,19 @@
-console.log("SSI: Server is starting.")
+function debug(msg){
+    var colour = require('cli-color');
+    console.log((colour.xterm(45))("SSI: ")+msg);
+}
+debug("The server is starting.")
 var express = require('express'),
 	app = express(),
     server = require('http').createServer(app),
-    io = require("socket.io").listen(server),
+    io = require("socket.io").listen(server, {log:false}),
     data = {},
     dbController = require('nstore'),
     database = dbController.new('data.db',function(){
         database.get("data", function(e,d,k){
             data = d;
-        })
+            debug(e?"There was an error loading the database.":"The database had been loaded.")
+        });
     });
 server.listen(3780);
 app.get('/', function(req, res){
@@ -27,12 +32,12 @@ app.get('/helvetica.woff', function(req, res){
 	res.sendfile(__dirname + '/interface/helvetica.woff');
 });
 io.sockets.on('connection', function(socket){
-    console.log("SSI: Interface has connected.")
+    debug("The interface has connected.")
     socket.on('requestdata', function(v){
-        console.log("SSI: Interface has request data");
+        debug("The interface requested data.");
         socket.emit('data', data);
     });
     socket.on('disconnect', function() {
-        console.log("SSI: Interface has disconnected.")
+        debug("The interface has disconnected.")
     });
 });
